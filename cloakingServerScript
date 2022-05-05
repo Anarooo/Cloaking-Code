@@ -1,0 +1,75 @@
+--Written by Anaro_Ryker
+--This script is property of Anaro_Ryker. Use of this script without prior permission is strictly prohibited.
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local a = {"CLASSIFIED", "SENTINEL", "Internal Security Branch", "Intelligence Oversight Committee"}
+local cloakedPlayers = {}
+local cloakedCLASSIFIED = {}
+
+ReplicatedStorage.cloakActivated.OnServerEvent:Connect(function(Player, t) --Runs Function once RemoteEvent "cloakActiated" is fired by a client.
+	if table.find(a, t) and Player.Team.Name == t then --Compares LocalPlayer's team to whitelisted teams and Player's team IS true. (This is the ServerSide Verification)
+		table.insert(cloakedPlayers, Player)
+		if t == "CLASSIFIED" and Player.Team.Name == t then
+			table.insert(cloakedCLASSIFIED, Player)
+		end
+		print(cloakedPlayers)
+		ReplicatedStorage.cloakActivated:FireAllClients(Player, t)
+	else
+		print(Player, " attempted to fire Cloaking Script without Valid Team. Logging.") --Fires RemoteEvent to create webhook log through ServerScript.
+		--Webhook Fire goes here
+	end
+end)
+
+ReplicatedStorage.cloakDeactivated.OnServerEvent:Connect(function(Player, t) --Runs Function once RemoteEvent "cloakActiated" is fired by a client.
+	if table.find(a, t) and Player.Team.Name == t then --Compares LocalPlayer's team to whitelisted teams and Player's team IS true. (This is the ServerSide Verification)
+		if table.find(cloakedPlayers, Player) then
+			for i = #cloakedPlayers, 1, -1 do
+				if cloakedPlayers[i] == Player then
+					table.remove(cloakedPlayers, i)
+				end
+			end
+		end
+		print(cloakedPlayers)
+		ReplicatedStorage.cloakDeactivated:FireAllClients(Player)
+	else
+		print(Player, " attempted to fire Cloaking Script without Valid Team. Logging.") --Fires RemoteEvent to create webhook log through ServerScript.
+		--Webhook Fire goes here
+	end
+end)
+
+Players.PlayerAdded:Connect(function(Player) --Forces all players to cloak all the players inside table once they connect.
+	if Player:GetRankInGroup(9426888) < 230 then
+		for i = #cloakedPlayers, 1, -1 do
+			local forceCloakPlayer = cloakedPlayers[i]
+			local t_1 = "BLANK"
+			ReplicatedStorage.cloakActivated:FireClient(Player, forceCloakPlayer, t_1)
+			wait(0.001)
+		end
+	elseif Player:GetRankInGroup(9426888) == 230 or Player:GetRankInGroup(9426888) == 240 or Player:GetRankInGroup(9426888) == 250 then
+		for i = #cloakedCLASSIFIED, 1 -1 do
+			local forceCloakClassified = cloakedCLASSIFIED[i]
+			local t_ = "[CLASSIFIED]"
+			ReplicatedStorage.cloakActivated:FireClient(Player, forceCloakClassified, t_)
+		end
+	elseif Player:GetRankInGroup(9426888) >= 255 then
+		--Nothing Happens, Player is allowed to see all cloaked players.
+	end
+end)
+
+Players.PlayerRemoving:Connect(function(Player) --Once a Player Leaves, function checks if they are cloaked, and removes them from the table if they are.
+	if table.find(cloakedPlayers, Player) then
+		for i = #cloakedPlayers, 1, -1 do
+			if cloakedPlayers[i] == Player then
+				table.remove(cloakedPlayers, i)
+			end
+		end
+	end
+	if table.find(cloakedCLASSIFIED, Player) then
+		for i = #cloakedCLASSIFIED, 1, -1 do
+			if cloakedCLASSIFIED[i] == Player then
+				table.remove(cloakedCLASSIFIED, i)
+			end
+		end
+	end
+end)

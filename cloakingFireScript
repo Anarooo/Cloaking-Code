@@ -1,0 +1,31 @@
+--Written by Anaro_Ryker
+--This script is property of Anaro_Ryker. Use of this script without prior permission is strictly prohibited.
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local cloakingButton = script.Parent
+local cloakActivated = false
+local a = {"CLASSIFIED", "SENTINEL", "Internal Security Branch", "Intelligence Oversight Committee"} --Teams table (This is cross-checked with server-side once server recieves RemoteFire so changing this will not cloak you)
+
+cloakingButton.MouseButton1Click:Connect(function() --Runs the below code every time the button is pressed.
+	local t = LocalPlayer.Team.Name --Checks LocalPlayer's team at time of script running
+	if table.find(a, t) then --Compares LocalPlayer's team to whitelisted teams.
+		if cloakActivated == false then 
+			wait(0.2)
+			ReplicatedStorage.cloakActivated:FireServer(t) --Fires RemoteEvent to activate cloak to Server
+			cloakActivated = true 
+		elseif cloakActivated == true then
+			wait(0.2)
+			ReplicatedStorage.cloakDeactivated:FireServer(t) --Fires RemoteEvent to deactivate cloak to Server
+			cloakActivated = false
+		else
+			print("Encountered Error 0x08000002") --Error Logging (Creates ease of access for debug)
+		end
+	elseif t ~= a then
+		print("Attempted to activate cloak with invalid team. Logging.") --Fires RemoteEvent to create webhook log through ServerScript.
+		--webhook log fire here
+	else
+		print("Encountered Error 0x0800001") --Error Logging (Creates ease of access for debug)
+	end
+end)
